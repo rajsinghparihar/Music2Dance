@@ -23,6 +23,7 @@ parser.add_argument('-type', '--type', type=str, default='action',
                     help='Type of dance -- state, action, stateplusaction')
 parser.add_argument('-visfolder', '--visfolder', type=str, default='./images/popping_28',
                     help='path to folder containing agent visualizations')
+parser.add_argument('-feature', '--feature', type=str, default='mfcc', help='feature for music matrix generation')
 args = parser.parse_args()
 
 # global variables
@@ -88,9 +89,15 @@ def get_dance_matrix(states, actions, dance_matrix_type, music_matrix_full):
 def compute_music_matrix(y, sr, mode, metric):
     """Return music affinity matrix based on mode."""
     lifter = 0
-    n_mfcc = 20
-    mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=n_mfcc, lifter=lifter, hop_length=HOP_LENGTH)
-    R = librosa.segment.recurrence_matrix(mfcc, metric=metric, mode=mode, sym=True).T.astype(float)    # already normalized in 0-1
+    n_features = 20
+    feature_name = args.feature
+    if feature_name == 'mfcc':
+      f = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=n_features, lifter=lifter, hop_length=HOP_LENGTH)
+    elif feature_name == 'chroma_cqt':
+      f = librosa.feature.chroma_cqt(y=y, sr=sr, n_chroma=n_features, hop_length=HOP_LENGTH, bins_per_octave=3*n_features)
+    elif feature_name == 'chroma_stft':
+      f = librosa.feature.chroma_stft(y=y, sr=sr, n_chroma=n_features, hop_length=HOP_LENGTH)
+    R = librosa.segment.recurrence_matrix(f, metric=metric, mode=mode, sym=True).T.astype(float)    # already normalized in 0-1
     np.fill_diagonal(R, 1)    # make diagonal entries 1
     return R
 
