@@ -1,0 +1,7 @@
+cython
+librosa
+matplotlib
+numba
+numpy
+Pillow
+scipy
